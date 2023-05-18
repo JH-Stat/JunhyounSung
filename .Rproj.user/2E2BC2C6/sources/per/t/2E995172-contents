@@ -1,0 +1,37 @@
+setwd("D:\\230418_Lan_ADNI\\ADNI data\\ADNI2")
+
+library(dplyr)
+library(stringr)
+
+extractSubjectID <- function(filename) {
+  subject_id=str_sub(filename,24,33)
+  return(subject_id)
+}
+
+metadata <- read.csv("ADNI2.csv", header = TRUE)
+head(metadata)
+sex <- metadata$Sex
+subject_ids <- metadata$Subject.ID
+
+dir.create("male_input_images")
+dir.create("female_input_images")
+
+input_folder <- "input_images"
+input_files <- list.files(input_folder, pattern = "\\.nii$", full.names = TRUE)
+length(input_files)
+
+
+for (filename in input_files) {
+  subject_id <- extractSubjectID(filename)
+  subject_sex=sex[which(subject_ids==subject_id)] %>% unique()
+  if (identical(subject_sex,character(0))) {
+    next # There is one sample "..._037_V_4001_..."
+  }
+  if (subject_sex == "M") {
+    destination_folder <- "male_input_images"
+  } else {
+    destination_folder <- "female_input_images"
+  }
+  file.copy(filename, file.path(destination_folder, basename(filename)))
+}
+
